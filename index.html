@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>Despertar · BA 2026</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#050D15;color:#F0F8FF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;}
+  #app{max-width:430px;margin:0 auto;padding-bottom:40px;}
+
+  /* header */
+  .hdr{display:flex;justify-content:space-between;align-items:center;padding:18px 18px 10px;}
+  .hdr-sub{font-size:9px;letter-spacing:3px;color:#22D3EE;text-transform:uppercase;font-weight:800;}
+  .hdr-desc{font-size:12px;color:#94B8D4;margin-top:3px;font-weight:500;}
+  .hdr-right{text-align:right;}
+  .hdr-label{font-size:9px;letter-spacing:3px;color:#3D6482;text-transform:uppercase;}
+  .hdr-days{font-size:32px;font-weight:900;color:#FFD43B;line-height:1;font-family:'Courier New',monospace;}
+  .hdr-days span{font-size:14px;font-weight:600;color:#FB923C;}
+
+  /* hero */
+  .hero{margin:6px 14px 14px;border-radius:16px;overflow:hidden;background:#0B1825;border:1px solid #162535;position:relative;}
+  .hero-bar{height:3px;}
+  .hero-body{padding:18px 18px 20px;}
+  .hero-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;}
+  .hero-eyebrow{font-size:9px;letter-spacing:3px;color:#22D3EE;text-transform:uppercase;font-weight:800;}
+  .hero-meta{font-size:12px;color:#94B8D4;margin-top:4px;}
+  .hero-meta span{color:#3D6482;}
+  .hero-badge{padding:4px 11px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:.5px;}
+  .hero-center{text-align:center;}
+  .hero-wake-label{font-size:9px;letter-spacing:4px;color:#3D6482;text-transform:uppercase;margin-bottom:8px;}
+  .hero-time{font-size:80px;font-weight:900;color:#FB923C;font-family:'Courier New',monospace;line-height:1;letter-spacing:-4px;}
+  .hero-prova{font-size:28px;font-weight:900;color:#FFD43B;padding:8px 0;}
+  .hero-info{display:flex;justify-content:center;gap:10px;margin-top:10px;font-size:11px;color:#94B8D4;}
+  .hero-info b{color:#F0F8FF;}
+  .hero-dot{color:#1C3A52;}
+
+  /* tabs */
+  .tabs{display:flex;margin:0 14px 12px;background:#0B1825;border-radius:10px;padding:3px;border:1px solid #162535;}
+  .tab{flex:1;padding:8px 0;border-radius:8px;border:none;font-size:12px;cursor:pointer;transition:all .15s;}
+  .tab.active{background:#163050;color:#F0F8FF;font-weight:700;}
+  .tab.inactive{background:transparent;color:#3D6482;font-weight:500;}
+
+  /* section label */
+  .sec-label{font-size:9px;letter-spacing:3px;color:#22D3EE;text-transform:uppercase;margin-bottom:8px;font-weight:800;padding:0 14px;}
+
+  /* day row */
+  .day-row{display:flex;align-items:center;padding:11px 13px;margin:0 14px 5px;border-radius:10px;background:#0B1825;border:1px solid #162535;}
+  .day-row.today{background:#0F2033;border-color:#1E4A70;}
+  .day-row.past{opacity:.35;}
+  .day-name{font-size:12px;font-weight:700;width:40px;flex-shrink:0;}
+  .day-name.today{color:#F0F8FF;}
+  .day-name.normal{color:#94B8D4;}
+  .day-date{font-size:10px;color:#3D6482;margin-top:1px;}
+  .day-bar{width:3px;height:26px;border-radius:2px;margin:0 12px;flex-shrink:0;}
+  .day-tipo{font-size:12px;font-weight:600;}
+  .day-tipo.off{color:#3D6482;font-weight:400;}
+  .day-dur{font-size:10px;color:#3D6482;margin-top:2px;}
+  .day-wake{flex-shrink:0;text-align:right;}
+  .day-wake-off{font-size:11px;color:#1C3A52;}
+  .day-wake-prova{font-size:12px;color:#FFD43B;font-weight:800;}
+  .day-wake-time{font-size:19px;font-weight:800;color:#FB923C;font-family:'Courier New',monospace;}
+
+  /* accordion */
+  .acc-btn{width:100%;display:flex;justify-content:space-between;align-items:center;
+    padding:10px 14px;border:1px solid #162535;cursor:pointer;font-size:12px;font-weight:700;}
+  .acc-btn.cur{background:#0F2033;border-color:#1E4A70;color:#F0F8FF;}
+  .acc-btn.nor{background:#0B1825;color:#94B8D4;}
+  .acc-btn.open{border-radius:10px 10px 0 0;}
+  .acc-btn.closed{border-radius:10px;}
+  .acc-arrow{font-size:10px;color:#3D6482;}
+  .acc-body{background:#060E17;border:1px solid #162535;border-top:none;border-radius:0 0 10px 10px;overflow:hidden;margin:0 0 6px;}
+  .acc-item{display:flex;align-items:center;padding:9px 14px;}
+  .acc-item.today-row{background:#0D2236;}
+  .acc-item+.acc-item{border-top:1px solid #1C3A52;}
+  .acc-date{font-size:11px;color:#3D6482;width:68px;flex-shrink:0;}
+  .acc-tipo{font-size:11px;font-weight:600;}
+  .acc-dur{font-size:10px;color:#3D6482;margin-left:7px;}
+  .acc-wake{flex-shrink:0;font-size:15px;font-weight:800;color:#FB923C;font-family:'Courier New',monospace;}
+  .acc-wake.prova{font-size:12px;color:#FFD43B;font-weight:800;}
+
+  .footer{text-align:center;padding:24px 0 16px;font-size:9px;letter-spacing:3px;color:#1C3A52;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const S = [
+  {date:"2026-06-11",w:4,dia:"Qui",tipo:"Z4 LT2",   dur:43,rpe:9},
+  {date:"2026-06-12",w:4,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
+  {date:"2026-06-13",w:4,dia:"Sáb",tipo:"Z2",        dur:45,rpe:4},
+  {date:"2026-06-14",w:4,dia:"Dom",tipo:"Endurance", dur:85,rpe:5},
+  {date:"2026-06-15",w:5,dia:"Seg",tipo:"OFF",       dur:0, rpe:0},
+  {date:"2026-06-16",w:5,dia:"Ter",tipo:"Z3/Z4",     dur:41,rpe:7},
+  {date:"2026-06-17",w:5,dia:"Qua",tipo:"Z2",        dur:40,rpe:4},
+  {date:"2026-06-18",w:5,dia:"Qui",tipo:"Z5 VO₂",    dur:33,rpe:8},
+  {date:"2026-06-19",w:5,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
+  {date:"2026-06-20",w:5,dia:"Sáb",tipo:"Z2",        dur:28,rpe:3},
+  {date:"2026-06-21",w:5,dia:"Dom",tipo:"PROVA 18K", dur:74,rpe:8,prova:true},
+  {date:"2026-06-22",w:6,dia:"Seg",tipo:"OFF",       dur:0, rpe:0},
+  {date:"2026-06-23",w:6,dia:"Ter",tipo:"Z2",        dur:45,rpe:4},
+  {date:"2026-06-24",w:6,dia:"Qua",tipo:"Z2",        dur:50,rpe:4},
+  {date:"2026-06-25",w:6,dia:"Qui",tipo:"Z4 Fartlek",dur:47,rpe:8},
+  {date:"2026-06-26",w:6,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
+  {date:"2026-06-27",w:6,dia:"Sáb",tipo:"Z2",        dur:50,rpe:4},
+  {date:"2026-06-28",w:6,dia:"Dom",tipo:"Endurance", dur:90,rpe:6},
+  {date:"2026-06-29",w:7,dia:"Seg",tipo:"OFF",       dur:0, rpe:0},
+  {date:"2026-06-30",w:7,dia:"Ter",tipo:"Z4 LT2",    dur:61,rpe:8},
+  {date:"2026-07-01",w:7,dia:"Qua",tipo:"Z2",        dur:55,rpe:4},
+  {date:"2026-07-02",w:7,dia:"Qui",tipo:"Z5 VO₂",    dur:52,rpe:9},
+  {date:"2026-07-03",w:7,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
+  {date:"2026-07-04",w:7,dia:"Sáb",tipo:"Z2",        dur:55,rpe:4},
+  {date:"2026-07-05",w:7,dia:"Dom",tipo:"Endurance", dur:85,rpe:7},
+  {date:"2026-07-06",w:8,dia:"Seg",tipo:"OFF",       dur:0, rpe:0},
+  {date:"2026-07-07",w:8,dia:"Ter",tipo:"Z4 LT2",    dur:55,rpe:8},
+  {date:"2026-07-08",w:8,dia:"Qua",tipo:"Z2",        dur:55,rpe:4},
+  {date:"2026-07-09",w:8,dia:"Qui",tipo:"Z5 VO₂",    dur:52,rpe:9},
+  {date:"2026-07-10",w:8,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
+  {date:"2026-07-11",w:8,dia:"Sáb",tipo:"Z2",        dur:55,rpe:4},
+  {date:"2026-07-12",w:8,dia:"Dom",tipo:"Endurance", dur:92,rpe:8},
+  {date:"2026-07-13",w:9,dia:"Seg",tipo:"OFF",       dur:0, rpe:0},
+  {date:"2026-07-14",w:9,dia:"Ter",tipo:"Z4 LT2",    dur:52,rpe:9},
+  {date:"2026-07-15",w:9,dia:"Qua",tipo:"Z2",        dur:60,rpe:4},
+  {date:"2026-07-16",w:9,dia:"Qui",tipo:"Z5 VO₂",    dur:43,rpe:9},
+  {date:"2026-07-17",w:9,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
+  {date:"2026-07-18",w:9,dia:"Sáb",tipo:"Z2",        dur:60,rpe:4},
+  {date:"2026-07-19",w:9,dia:"Dom",tipo:"Endurance", dur:93,rpe:9},
+  {date:"2026-07-20",w:10,dia:"Seg",tipo:"OFF",      dur:0, rpe:0},
+  {date:"2026-07-21",w:10,dia:"Ter",tipo:"Z4 LT2",   dur:53,rpe:8},
+  {date:"2026-07-22",w:10,dia:"Qua",tipo:"Z2",       dur:50,rpe:4},
+  {date:"2026-07-23",w:10,dia:"Qui",tipo:"Z5 VO₂",   dur:44,rpe:9},
+  {date:"2026-07-24",w:10,dia:"Sex",tipo:"OFF",      dur:0, rpe:0},
+  {date:"2026-07-25",w:10,dia:"Sáb",tipo:"Z2",       dur:50,rpe:4},
+  {date:"2026-07-26",w:10,dia:"Dom",tipo:"Endurance",dur:90,rpe:8},
+  {date:"2026-07-27",w:11,dia:"Seg",tipo:"OFF",      dur:0, rpe:0},
+  {date:"2026-07-28",w:11,dia:"Ter",tipo:"Z3/Z4",    dur:54,rpe:8},
+  {date:"2026-07-29",w:11,dia:"Qua",tipo:"Z2",       dur:50,rpe:4},
+  {date:"2026-07-30",w:11,dia:"Qui",tipo:"Z5/Z4",    dur:52,rpe:9},
+  {date:"2026-07-31",w:11,dia:"Sex",tipo:"OFF",      dur:0, rpe:0},
+  {date:"2026-08-01",w:11,dia:"Sáb",tipo:"Z2",       dur:50,rpe:4},
+  {date:"2026-08-02",w:11,dia:"Dom",tipo:"Endurance",dur:86,rpe:8},
+  {date:"2026-08-03",w:12,dia:"Seg",tipo:"OFF",      dur:0, rpe:0},
+  {date:"2026-08-04",w:12,dia:"Ter",tipo:"Z4 LT2",   dur:56,rpe:9},
+  {date:"2026-08-05",w:12,dia:"Qua",tipo:"Z2",       dur:50,rpe:4},
+  {date:"2026-08-06",w:12,dia:"Qui",tipo:"Z5 VO₂",   dur:47,rpe:9},
+  {date:"2026-08-07",w:12,dia:"Sex",tipo:"OFF",      dur:0, rpe:0},
+  {date:"2026-08-08",w:12,dia:"Sáb",tipo:"Z2",       dur:45,rpe:4},
+  {date:"2026-08-09",w:12,dia:"Dom",tipo:"Endurance",dur:88,rpe:9},
+  {date:"2026-08-10",w:13,dia:"Seg",tipo:"OFF",      dur:0, rpe:0},
+  {date:"2026-08-11",w:13,dia:"Ter",tipo:"Z3/Z4",    dur:40,rpe:8},
+  {date:"2026-08-12",w:13,dia:"Qua",tipo:"Z2",       dur:40,rpe:4},
+  {date:"2026-08-13",w:13,dia:"Qui",tipo:"Z5 VO₂",   dur:37,rpe:8},
+  {date:"2026-08-14",w:13,dia:"Sex",tipo:"OFF",      dur:0, rpe:0},
+  {date:"2026-08-15",w:13,dia:"Sáb",tipo:"Z2",       dur:35,rpe:4},
+  {date:"2026-08-16",w:13,dia:"Dom",tipo:"Endurance",dur:69,rpe:7},
+  {date:"2026-08-17",w:14,dia:"Seg",tipo:"OFF",      dur:0, rpe:0},
+  {date:"2026-08-18",w:14,dia:"Ter",tipo:"Z3/Z4",    dur:35,rpe:7},
+  {date:"2026-08-19",w:14,dia:"Qua",tipo:"Z2",       dur:30,rpe:4},
+  {date:"2026-08-20",w:14,dia:"Qui",tipo:"Z5",       dur:28,rpe:7},
+  {date:"2026-08-21",w:14,dia:"Sex",tipo:"OFF",      dur:0, rpe:0},
+  {date:"2026-08-22",w:14,dia:"Sáb",tipo:"Z2",       dur:24,rpe:3},
+  {date:"2026-08-23",w:14,dia:"Dom",tipo:"PROVA 21K",dur:86,rpe:10,prova:true},
+];
+
+const WL = {
+  4:"S4 · Base",5:"S5 · Transição",6:"S6 · Transição",
+  7:"S7 · Desenvolvimento",8:"S8 · Desenvolvimento",9:"S9 · Desenvolvimento",
+  10:"S10 · Desenvolvimento",11:"S11 · Especificidade",12:"S12 · Especificidade",
+  13:"S13 · Polimento",14:"S14 · Polimento",
+};
+
+const wt = dur => {
+  const m = 440 - dur;
+  return `${Math.floor(m/60)}:${(m%60).toString().padStart(2,"0")}`;
+};
+
+const sc = tipo => {
+  if(tipo.startsWith("PROVA"))   return {text:"#FFD43B",bar:"#FFD43B",bg:"rgba(255,212,59,.12)"};
+  if(tipo.includes("Endurance")) return {text:"#C084FC",bar:"#C084FC",bg:"rgba(192,132,252,.10)"};
+  if(tipo.includes("Z5"))        return {text:"#FF4D6D",bar:"#FF4D6D",bg:"rgba(255,77,109,.10)"};
+  if(tipo.includes("Z4")||tipo==="Z3/Z4"||tipo.includes("Fartlek")||tipo.includes("Z5/Z4"))
+                                 return {text:"#FB923C",bar:"#FB923C",bg:"rgba(251,146,60,.10)"};
+  if(tipo.includes("Z2")||tipo.includes("Z3"))
+                                 return {text:"#22D3EE",bar:"#22D3EE",bg:"rgba(34,211,238,.10)"};
+  return {text:"#64748B",bar:"#1E3040",bg:"transparent"};
+};
+
+const fmt = d => { const [,m,day]=d.split("-"); return `${day}/${m}`; };
+
+let tab = "semana";
+let expanded = {};
+
+function today() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function tomorrow() {
+  const d = new Date(); d.setDate(d.getDate()+1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function getHero() {
+  const tmr = tomorrow();
+  const ts = S.find(s => s.date === tmr);
+  if(ts && ts.tipo !== "OFF") return ts;
+  return S.find(s => s.date > today());
+}
+
+function render() {
+  const td    = today();
+  const tmr   = tomorrow();
+  const hero  = getHero();
+  const cw    = hero?.w ?? 6;
+  const ws    = S.filter(s => s.w === cw);
+  const dl    = Math.max(0, Math.ceil((new Date("2026-08-23") - new Date(td)) / 86400000));
+  const byW   = S.reduce((a,s) => ({...a,[s.w]:[...(a[s.w]||[]),s]}),{});
+  const isOpen= w => expanded.hasOwnProperty(w) ? expanded[w] : w===cw;
+
+  const heroSt = hero ? sc(hero.tipo) : {text:"#FB923C",bar:"#FB923C",bg:"transparent"};
+
+  let html = `
+  <div class="hdr">
+    <div>
+      <div class="hdr-sub">Ciclo · Buenos Aires</div>
+      <div class="hdr-desc">Meia Maratona · 23 ago 2026</div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-label">faltam</div>
+      <div class="hdr-days">${dl}<span> d</span></div>
+    </div>
+  </div>`;
+
+  if(hero) {
+    const isAmanha = hero.date === tmr;
+    html += `
+  <div class="hero">
+    <div class="hero-bar" style="background:linear-gradient(90deg,${heroSt.bar},transparent)"></div>
+    <div class="hero-body">
+      <div class="hero-row">
+        <div>
+          <div class="hero-eyebrow">${isAmanha ? "Amanhã" : "Próximo treino"}</div>
+          <div class="hero-meta">${hero.dia} ${fmt(hero.date)} · <span>${WL[hero.w]}</span></div>
+        </div>
+        <div class="hero-badge" style="background:${heroSt.bg};border:1px solid ${heroSt.bar}40;color:${heroSt.text}">${hero.tipo}</div>
+      </div>
+      <div class="hero-center">
+        <div class="hero-wake-label">Despertar</div>
+        ${hero.prova
+          ? `<div class="hero-prova">🏁 DIA DE PROVA</div>`
+          : `<div class="hero-time">${wt(hero.dur)}</div>
+             <div class="hero-info">
+               <span>⏱ <b>${hero.dur} min</b></span>
+               <span class="hero-dot">·</span>
+               <span>RPE <b>${hero.rpe}</b></span>
+               <span class="hero-dot">·</span>
+               <span>término <b>~8:00</b></span>
+             </div>`
+        }
+      </div>
+    </div>
+  </div>`;
+  }
+
+  html += `
+  <div class="tabs">
+    <button class="tab ${tab==="semana"?"active":"inactive"}" onclick="setTab('semana')">Esta Semana</button>
+    <button class="tab ${tab==="ciclo"?"active":"inactive"}" onclick="setTab('ciclo')">Ciclo Completo</button>
+  </div>`;
+
+  if(tab==="semana") {
+    html += `<div class="sec-label">${WL[cw]}</div>`;
+    ws.forEach(s => {
+      const isT  = s.date === td;
+      const past = s.date < td;
+      const st   = sc(s.tipo);
+      const isOff= s.tipo==="OFF";
+      html += `
+  <div class="day-row${isT?" today":""}${past?" past":""}">
+    <div style="width:40px;flex-shrink:0">
+      <div class="day-name ${isT?"today":"normal"}">${s.dia}</div>
+      <div class="day-date">${fmt(s.date)}</div>
+    </div>
+    <div class="day-bar" style="background:${isOff?"#1C3A52":st.bar}"></div>
+    <div style="flex:1">
+      <div class="day-tipo${isOff?" off":""}" style="${isOff?"":"color:"+st.text}">${s.tipo}</div>
+      ${s.dur>0?`<div class="day-dur">${s.dur} min · RPE ${s.rpe}</div>`:""}
+    </div>
+    <div class="day-wake">
+      ${isOff
+        ? `<span class="day-wake-off">descanso</span>`
+        : s.prova
+        ? `<span class="day-wake-prova">PROVA</span>`
+        : `<span class="day-wake-time">${wt(s.dur)}</span>`
+      }
+    </div>
+  </div>`;
+    });
+  }
+
+  if(tab==="ciclo") {
+    Object.keys(byW).forEach(wk => {
+      const wn   = parseInt(wk);
+      const open = isOpen(wn);
+      const cur  = wn===cw;
+      const days = byW[wk].filter(s=>s.tipo!=="OFF");
+      html += `
+  <div style="margin:0 14px 6px">
+    <button class="acc-btn ${cur?"cur":"nor"} ${open?"open":"closed"}" onclick="togAcc(${wn})">
+      ${WL[wn]}<span class="acc-arrow">${open?"▲":"▼"}</span>
+    </button>`;
+      if(open) {
+        html += `<div class="acc-body">`;
+        days.forEach((s,i) => {
+          const past = s.date < td;
+          const isT  = s.date === td;
+          const st   = sc(s.tipo);
+          html += `
+    <div class="acc-item${isT?" today-row":""}" style="opacity:${past?.32:1}">
+      <div class="acc-date">${s.dia} ${fmt(s.date)}</div>
+      <div style="flex:1;padding-left:4px">
+        <span class="acc-tipo" style="color:${st.text}">${s.tipo}</span>
+        ${s.dur>0?`<span class="acc-dur">${s.dur}' RPE${s.rpe}</span>`:""}
+      </div>
+      <div>${s.prova
+        ? `<span class="acc-wake prova">🏁</span>`
+        : `<span class="acc-wake">${wt(s.dur)}</span>`
+      }</div>
+    </div>`;
+        });
+        html += `</div>`;
+      }
+      html += `</div>`;
+    });
+  }
+
+  html += `<div class="footer">Foco · Consistência · Execução</div>`;
+  document.getElementById("app").innerHTML = html;
+}
+
+function setTab(t) { tab=t; render(); }
+function togAcc(w) {
+  const cur = expanded.hasOwnProperty(w) ? expanded[w] : w === (getHero()?.w ?? 6);
+  expanded[w] = !cur;
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
