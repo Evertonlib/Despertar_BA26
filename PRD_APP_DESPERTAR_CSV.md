@@ -1,6 +1,6 @@
-# PRD — App Despertar (BA 2026): migração da lista fixa para CSV
+# PRD — Sistema Ritmo Certo (Despertar): migração da lista fixa para CSV
 
-**Documento:** requisitos de produto para desacoplar o app "Despertar" da lista de treinos embutida no código e fazê-lo ler o mesmo CSV usado pelo app de treino da usuária.
+**Documento:** requisitos de produto para desacoplar o app "Despertar" da lista de treinos embutida no código e fazê-lo ler o mesmo CSV usado pelo app de treino da usuária. Nesta melhoria o nome de identidade do app passa a ser **"Sistema Ritmo Certo"**.
 **Status:** aguardando aprovação. Nenhum código será escrito antes do "ok".
 **Data:** 04/07/2026.
 
@@ -12,7 +12,7 @@ Hoje o app "Despertar · BA 2026" é um único arquivo `index.html` publicado no
 
 O objetivo desta melhoria é **trocar a origem dos dados**: em vez de ler a lista fixa embutida, o app passará a ler um arquivo **CSV** que a própria usuária seleciona do celular — o mesmo CSV já utilizado pelo outro app de treino dela. Os dados lidos ficam guardados na memória local do navegador, para que o app reabra sem pedir o arquivo de novo, e um botão sempre visível permite atualizar o ciclo quando o CSV mudar. O app também passa a ser instalável e funcionar offline (PWA).
 
-**O que NÃO muda:** o visual, a identidade, o comportamento das duas abas e — o mais importante — a lógica de cálculo do horário de despertar. Muda apenas de onde vêm os números.
+**O que NÃO muda:** o visual, o comportamento das duas abas e — o mais importante — a **conta** que gera o horário de despertar (subtrair a duração do treino e os 40 minutos fixos de preparo). **O que muda além da origem dos dados:** o nome de identidade do app passa a ser "Sistema Ritmo Certo" e a **hora de término do treino** deixa de ser fixa em 8:00 e passa a ser escolhida pela usuária uma vez, ao carregar o CSV (a folga de 40 minutos continua fixa).
 
 ---
 
@@ -37,12 +37,12 @@ A ideia é que os dois apps compartilhem o **mesmo arquivo**: a usuária mantém
 
 | Arquivo | Situação | O que acontece |
 |---|---|---|
-| `index.html` | existente | Recebe a leitura de CSV, a persistência em `localStorage`, o botão de atualizar ciclo, os estados de "sem dados"/erro, e o registro do service worker. Perde a lista fixa `const S` e o mapa fixo de semanas `WL`. |
-| `manifest.webmanifest` (nome final a definir) | **novo** | Manifesto do PWA (nome, ícones, cor de tema, modo standalone) para tornar o app instalável. |
+| `index.html` | existente | **Continua unificado** (HTML + CSS + JS juntos no mesmo arquivo). Recebe a leitura de CSV, a escolha da hora de término, a persistência em `localStorage`, o botão de atualizar ciclo, os estados de "sem dados"/erro, e o registro do service worker. Passa a se apresentar como "Sistema Ritmo Certo". Perde a lista fixa `const S` e o mapa fixo de semanas `WL`. |
+| `manifest.webmanifest` (nome final a definir) | **novo** | Manifesto do PWA (nome "Sistema Ritmo Certo", ícones, cor de tema, modo standalone) para tornar o app instalável. |
 | `sw.js` (service worker) | **novo** | Faz o cache dos arquivos essenciais para o app abrir offline. |
-| Ícone(s) do app | **novo** | Pelo menos um ícone PNG (ex.: 192px e 512px) referenciado pelo manifesto. |
+| Ícone(s) do app | **novo** | Um ícone **próprio, gerado no projeto** (ex.: fundo na cor do app com um símbolo ou letra que remeta a "Ritmo Certo"/despertador), nos tamanhos exigidos pelo PWA (ex.: 192px e 512px), referenciado pelo manifesto. Substitui o quadrado azul genérico usado hoje. |
 
-Observação: o app hoje é um único arquivo. Para virar PWA instalável, precisará de no mínimo o manifesto e o service worker como arquivos separados no mesmo diretório do GitHub Pages. Isso é inerente à tecnologia PWA e não altera o padrão "HTML/CSS/JS puro" — nenhum framework é introduzido.
+Observação: o app hoje é um único arquivo. Para virar PWA instalável, precisará do manifesto, do service worker e do(s) ícone(s) como arquivos separados no mesmo diretório do GitHub Pages. Isso é inerente à tecnologia PWA e não altera o padrão "HTML/CSS/JS puro" — nenhum framework é introduzido, e o HTML/CSS/JS **permanece unificado no `index.html`** (o desmembramento em arquivos separados fica fora deste ciclo).
 
 ---
 
@@ -53,8 +53,11 @@ Observação: o app hoje é um único arquivo. Para virar PWA instalável, preci
 3. **Parser de CSV simples**, em JavaScript puro, que interpreta o cabeçalho e converte cada linha em um registro interno equivalente ao que a lista fixa fornecia hoje.
 4. **Persistência local** dos dados já parseados em `localStorage`, para que o app reabra direto no conteúdo sem pedir o arquivo novamente.
 5. **Estados de tela novos:** "nenhum ciclo carregado" (primeira abertura) e "arquivo inválido", com mensagem clara e caminho para tentar de novo — sem quebrar o app.
-6. **Derivação automática** do número da semana, do dia de prova e da data-alvo da contagem regressiva a partir do próprio CSV (ver seção 8).
-7. **PWA:** manifesto + service worker + ícone, tornando o app instalável na tela inicial e utilizável offline após o primeiro carregamento.
+6. **Campos definidos pela usuária ao carregar o CSV**, guardados junto com o ciclo em `localStorage` (ao reabrir o app não é preciso preencher de novo):
+   - **Hora de término do treino** (cada pessoa tem a sua: uma termina 8:00, outra pode terminar mais cedo). A folga de 40 minutos continua fixa; a conta em si não muda (ver seção 7.2).
+   - **Nome do evento** (ex.: "Meia Maratona de Buenos Aires"), exibido no cabeçalho. É **opcional**: se ficar em branco, o cabeçalho mostra só a data derivada do CSV, sem nome de evento, e o app funciona normalmente (ver premissa 6).
+7. **Derivação automática** do número da semana, do dia de prova e da data-alvo da contagem regressiva a partir do próprio CSV (ver seção 8).
+8. **PWA:** manifesto + service worker + **ícone próprio gerado no projeto**, tornando o app instalável na tela inicial (como "Sistema Ritmo Certo") e utilizável offline após o primeiro carregamento.
 
 ---
 
@@ -63,15 +66,17 @@ Observação: o app hoje é um único arquivo. Para virar PWA instalável, preci
 - **A lista fixa `const S`** (os ~72 registros de treino escritos no código). Passa a ser preenchida a partir do CSV.
 - **O mapa fixo de rótulos de semana `WL`** (ex.: "S4 · Base", "S7 · Desenvolvimento"). Como o número da semana passará a ser derivado por blocos de 7 dias e a coluna `fase` será ignorada, os títulos ricos de fase deixam de existir; no lugar entram títulos genéricos de semana (ver seção 9, premissas).
 - **A data de prova e a contagem regressiva escritas à mão** (a referência fixa a `2026-08-23` e o texto "23 ago 2026"). Passam a ser derivadas do CSV.
+- **O texto de identidade fixo do cabeçalho** ("Ciclo · Buenos Aires / Meia Maratona"). O nome de identidade passa a ser **"Sistema Ritmo Certo"** (ver premissa 6). O estilo/layout do cabeçalho é mantido.
+- **A hora de término fixa em 8:00** embutida na função `wt` (o número 440). Passa a ser escolhida pela usuária ao carregar o CSV (ver seção 7.2 e premissa 5).
 
 ---
 
 ## 6. O que NÃO será tocado
 
-1. **A lógica da função `wt` (cálculo do horário de despertar).** É o coração do app e deve ser preservada exatamente. Comportamento atual a preservar (descrito abaixo na seção 7). A única mudança permitida é que a duração passada a ela venha do CSV (`tempo`) em vez da lista fixa (`dur`) — o cálculo em si não muda.
-2. **O visual e a identidade atuais:** cores, tipografia, layout do "hero" com o horário gigante, cartões de dia, cabeçalho, rodapé — tudo mantido como está.
+1. **A conta da função `wt` (cálculo do horário de despertar).** É o coração do app e deve ser preservada: **hora de término do treino − duração do treino − 40 minutos fixos de preparo = hora de acordar**. A lógica (subtrair a duração e os 40 minutos) não muda. Mudam apenas duas entradas dela: a duração passa a vir do CSV (`tempo`) em vez da lista fixa (`dur`), e a **hora de término deixa de ser fixa em 8:00 e passa a ser a escolhida pela usuária**. Ou seja, o número fixo 440 embutido hoje (que equivale a 8:00 − 40 min) passa a ser calculado a partir da hora de término escolhida, sem alterar a fórmula.
+2. **O visual atual:** cores, tipografia, layout do "hero" com o horário gigante, cartões de dia, cabeçalho, rodapé — tudo mantido como está. (O **texto** de identidade no cabeçalho muda para "Sistema Ritmo Certo" — ver seção 5 e premissa 6 —, mas o estilo/layout permanece.)
 3. **O comportamento das abas** "Esta Semana" e "Ciclo Completo", incluindo destaque do dia atual, esmaecimento dos dias passados, acordeão por semana e marcação de prova. Só muda a origem dos dados que os alimenta.
-4. **A natureza do projeto:** continua HTML/CSS/JS puro, sem framework, num arquivo principal, publicável no GitHub Pages.
+4. **A natureza do projeto:** continua HTML/CSS/JS puro, sem framework, com o HTML/CSS/JS **unificado no `index.html`** (não há desmembramento em arquivos separados nesta melhoria; apenas o manifesto e o service worker entram como arquivos à parte, por exigência do PWA), publicável no GitHub Pages.
 
 ---
 
@@ -90,17 +95,17 @@ A função recebe a duração do treino em minutos e devolve um horário no form
 - Calcula `m = 440 − dur` (um total fixo de **440 minutos** menos a duração do treino).
 - O resultado `m` é interpretado como minutos desde a meia-noite: a hora é a parte inteira de `m ÷ 60` e os minutos são o resto de `m ÷ 60`, com dois dígitos.
 
-Interpretação do que isso representa: **440 minutos equivalem a 7h20**. O app assume, na prática, que o treino **termina por volta das 8:00** (mostrado na tela como "término ~8:00") e que há uma **folga fixa de 40 minutos** entre acordar e começar a correr. Assim, o horário de despertar é "7h20 menos a duração do treino" — quanto mais longo o treino, mais cedo se acorda. Exemplos com os dados atuais: treino de 43 min → **6:37**; treino de 40 min → **6:40**; treino de 55 min → **6:25**.
+Interpretação do que isso representa: **440 minutos equivalem a 7h20**. Hoje o app assume, embutido no código, que o treino **termina às 8:00** (8:00 = 480 min; 480 − 40 = 440) e que há uma **folga fixa de 40 minutos** entre acordar e começar a correr. Assim, com o valor de hoje, o horário de despertar é "7h20 menos a duração do treino" — quanto mais longo o treino, mais cedo se acorda. Exemplos com término 8:00: treino de 43 min → **6:37**; treino de 40 min → **6:40**; treino de 55 min → **6:25**. **Importante:** as 8:00 são o valor fixo de hoje (equivalente a um usuário que termina às 8:00), não uma regra imutável do app — nesta melhoria essa hora de término passa a ser escolhida pela pessoa.
 
-**Regra para esta melhoria:** manter esse cálculo idêntico (o mesmo total de 440, a mesma conta, o mesmo formato). A única diferença é que o número de minutos passado à função virá da coluna `tempo` do CSV em vez do campo `dur` da lista fixa.
+**Regra para esta melhoria:** manter a **fórmula** idêntica (subtrair a duração e os 40 minutos fixos, mesmo formato de saída H:MM). Mudam apenas duas entradas: (a) a duração passa a vir da coluna `tempo` do CSV em vez do campo `dur`; e (b) a hora de término deixa de ser fixa em 8:00 — o número base (hoje 440) passa a ser calculado como "hora de término escolhida, em minutos, − 40". Exemplo: término 6:30 (= 390 min) gera base 350; um treino de 50 min → 350 − 50 = 300 min = **5:00**.
 
 ### 7.3 Cabeçalho e contagem regressiva ("faltam X d")
 
-O cabeçalho mostra um subtítulo fixo ("Ciclo · Buenos Aires / Meia Maratona · 23 ago 2026") e, à direita, "faltam X d". Hoje o "X" é calculado como a diferença, em dias, entre uma **data de prova fixa no código (23/08/2026)** e a data de hoje, arredondada para cima e nunca negativa (mínimo zero). Nesta melhoria, essa data-alvo passa a ser derivada do CSV (ver seção 8).
+O cabeçalho mostra um subtítulo fixo ("Ciclo · Buenos Aires / Meia Maratona · 23 ago 2026") e, à direita, "faltam X d". Hoje o "X" é calculado como a diferença, em dias, entre uma **data de prova fixa no código (23/08/2026)** e a data de hoje, arredondada para cima e nunca negativa (mínimo zero). Nesta melhoria, essa data-alvo passa a ser derivada do CSV (ver seção 8), o nome do evento passa a ser um campo opcional preenchido pela pessoa (premissa 6) e o app se apresenta como "Sistema Ritmo Certo".
 
 ### 7.4 Escolha do treino em destaque (o "hero")
 
-O bloco de destaque mostra o próximo treino relevante. A regra atual é: se **amanhã** houver treino e ele não for OFF, mostra o de amanhã (rótulo "Amanhã"); caso contrário, mostra o **primeiro treino futuro** com data depois de hoje (rótulo "Próximo treino"). Se esse treino for de prova, o hero troca o horário por "🏁 DIA DE PROVA". Caso contrário, mostra o horário de despertar em destaque, mais duração, RPE e "término ~8:00". Esse comportamento é mantido.
+O bloco de destaque mostra o próximo treino relevante. A regra atual é: se **amanhã** houver treino e ele não for OFF, mostra o de amanhã (rótulo "Amanhã"); caso contrário, mostra o **primeiro treino futuro** com data depois de hoje (rótulo "Próximo treino"). Se esse treino for de prova, o hero troca o horário por "🏁 DIA DE PROVA". Caso contrário, mostra o horário de despertar em destaque, mais duração, RPE e o "término ~8:00". Esse comportamento é mantido; a única diferença é que o texto de término passa a refletir a **hora de término escolhida pela usuária** (hoje é fixo em 8:00).
 
 ### 7.5 Aba "Esta Semana"
 
@@ -143,8 +148,8 @@ Há uma função que escolhe a cor conforme o texto do tipo (PROVA, Endurance, Z
 2. As colunas obrigatórias para este app são **`data`, `dia`, `tipo` e `tempo`**. `rpe` é usado se presente. `fase` e `forca` podem existir ou não — são ignoradas de qualquer modo.
 3. Datas vêm em DD/MM/AA com ano de dois dígitos, interpretado como século 21 (ex.: `26` → 2026).
 4. Como a coluna `fase` é ignorada e a semana é derivada por blocos de 7 dias, os títulos de fase atuais ("S4 · Base", etc.) deixam de existir. Os cabeçalhos de semana passam a ser genéricos (ex.: "Semana 1", "Semana 2", ...). Isso é uma consequência aceita da regra de ignorar `fase`.
-5. A folga de 40 minutos e o horário de término ~8:00 embutidos na função `wt` continuam válidos e não são configuráveis nesta melhoria.
-6. O texto do cabeçalho que hoje cita "Buenos Aires / Meia Maratona / 23 ago 2026" pode passar a refletir a data derivada do CSV; o nome do evento em si não vem no CSV e pode permanecer como texto fixo de identidade do app (a definir na implementação, sem impacto na lógica).
+5. A **folga de 40 minutos continua fixa** e não é configurável. A **hora de término do treino passa a ser configurável**: é escolhida pela usuária uma vez, ao carregar o CSV, e guardada junto com o ciclo (reabrir o app não pede a escolha de novo). A conta em si (subtrair duração e os 40 min) não muda — apenas o valor da hora de término deixa de ser fixo em 8:00.
+6. O nome de identidade do app passa a ser **"Sistema Ritmo Certo"** (mudança desejada, não uma quebra de identidade), refletido no cabeçalho, no título da página e no nome do PWA. A **data** exibida no cabeçalho e a contagem regressiva passam a ser derivadas do CSV (ver seção 8). O **nome do evento** (ex.: "Meia Maratona de Buenos Aires") não vem no CSV e passa a ser um **campo preenchido pela pessoa** ao carregar o CSV, guardado junto com o ciclo. É **opcional**: se for deixado em branco, o cabeçalho mostra apenas a data derivada do CSV, sem nome de evento, e o app funciona normalmente — o preenchimento nunca trava nada.
 7. Um dia OFF pode vir com variações de texto (ex.: "OFF + Estabilidade Core"); o app trata como dia sem corrida quando o tipo começa/contém "OFF" — mantendo o comportamento atual de "descanso" e sem horário de despertar.
 8. O CSV pode conter uma coluna `treino` com textos longos e com vírgulas internas dentro dos campos; o parser precisa lidar com campos entre aspas, caso existam. (No arquivo atual os campos longos não usam aspas, mas o parser deve ser tolerante.)
 9. Todo o processamento é local no navegador; nenhum dado é enviado a servidor.
@@ -173,9 +178,17 @@ Cada critério descreve um cenário (entrada → resultado esperado). Incluídos
 Entrada: primeira abertura do app (nada salvo); a usuária toca em "Carregar ciclo" e escolhe o `dados_do_ciclo.csv` válido.
 Resultado: o app lê o arquivo, monta os treinos, exibe o hero com o horário de despertar do próximo treino (ou de amanhã), a contagem regressiva e as duas abas funcionando — exatamente como o app fazia com a lista fixa, agora com os dados do CSV.
 
-**CA-02 — Horário de despertar idêntico à lógica atual.**
-Entrada: um treino com `tempo = 45`.
-Resultado: o horário exibido é **6:35** (440 − 45 = 395 min = 6:35), no mesmo formato H:MM de hoje. Para `tempo = 43` → **6:37**; para `tempo = 55` → **6:25**. Ou seja, o cálculo de `wt` não mudou; só a origem do número.
+**CA-02 — Horário de despertar com término 8:00 (equivalente à lógica de hoje).**
+Entrada: a usuária define a hora de término em **8:00** e há um treino com `tempo = 45`.
+Resultado: o horário exibido é **6:35** (8:00 − 45 min − 40 min = 6:35), no mesmo formato H:MM de hoje. Para `tempo = 43` → **6:37**; para `tempo = 55` → **6:25**. Ou seja, com término 8:00 o resultado é idêntico ao comportamento atual; muda apenas a origem do número.
+
+**CA-02b — Hora de término configurável.**
+Entrada: a usuária define a hora de término em **6:30** e há um treino com `tempo = 50`.
+Resultado: o horário de despertar exibido é **5:00** (6:30 − 50 min − 40 min = 5:00). A folga de 40 minutos permaneceu fixa; apenas a hora de término mudou. A escolha fica guardada: ao reabrir o app, o mesmo término 6:30 continua valendo sem pedir de novo.
+
+**CA-02c — Nome do evento é opcional.**
+Entrada: ao carregar o CSV, a usuária **preenche** o nome do evento com "Meia Maratona de Buenos Aires".
+Resultado: o cabeçalho mostra esse nome junto com a data derivada do CSV. Em outro caso, se a usuária **deixa o campo em branco**, o cabeçalho mostra apenas a data derivada, sem nome de evento, e o app funciona normalmente — nada trava. O valor preenchido (ou o vazio) fica guardado e vale nas próximas aberturas.
 
 **CA-03 — Reabrir sem pedir o arquivo de novo.**
 Entrada: a usuária já carregou um CSV numa sessão anterior e fecha/reabre o app.
@@ -241,7 +254,7 @@ Resultado: não há "próximo treino" futuro; o app não quebra. A contagem regr
 
 **CA-17 — Instalação.**
 Entrada: a usuária abre o app num navegador compatível.
-Resultado: o app é instalável na tela inicial (manifesto válido, ícone e nome corretos) e abre em modo de aplicativo (sem barra de navegador), preservando o visual atual.
+Resultado: o app é instalável na tela inicial exibindo o nome **"Sistema Ritmo Certo"** e o **ícone próprio gerado no projeto** (não o quadrado azul genérico), e abre em modo de aplicativo (sem barra de navegador), preservando o visual atual.
 
 **CA-18 — Uso offline.**
 Entrada: após abrir o app online ao menos uma vez (com o ciclo já carregado e salvo), a usuária abre o app sem internet.
@@ -252,7 +265,7 @@ Resultado: o app carrega normalmente a partir do cache e mostra o ciclo salvo, i
 ## 12. Fora de escopo (nesta melhoria)
 
 - Editar treinos dentro do app (o CSV continua sendo a fonte; edições acontecem em quem gera o CSV).
-- Tornar a folga de 40 minutos ou o horário de término configuráveis.
+- Tornar a **folga de 40 minutos** configurável (ela permanece fixa; apenas a hora de término passa a ser escolhida pela usuária — isso está **dentro** do escopo, ver seção 4 e 7.2).
 - Sincronização em nuvem ou login. Tudo é local no dispositivo.
 - Notificações/alarmes de despertar.
 - Reintroduzir os nomes de fase nos títulos de semana (poderá ser reavaliado depois).
