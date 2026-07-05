@@ -6,7 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<title>Despertar · BA 2026</title>
+<title>Sistema Ritmo Certo</title>
+<link rel="manifest" href="manifest.webmanifest"/>
+<link rel="icon" href="icon-192.png"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<meta name="theme-color" content="#050D15"/>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:#050D15;color:#F0F8FF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;}
@@ -83,103 +87,45 @@
   .acc-wake.prova{font-size:12px;color:#FFD43B;font-weight:800;}
 
   .footer{text-align:center;padding:24px 0 16px;font-size:9px;letter-spacing:3px;color:#1C3A52;text-transform:uppercase;}
+
+  /* ciclo button / estados / erro / formulário */
+  .ciclo-btn-wrap{padding:0 14px 10px;}
+  .ciclo-btn{width:100%;padding:10px 0;border-radius:10px;border:1px solid #1E4A70;background:#0F2033;color:#F0F8FF;font-size:12px;font-weight:700;cursor:pointer;}
+  .empty-state{margin:40px 14px;text-align:center;color:#94B8D4;}
+  .empty-state p{margin-bottom:16px;font-size:13px;}
+  .error-banner{margin:0 14px 10px;padding:10px 13px;border-radius:10px;background:rgba(255,77,109,.12);border:1px solid #FF4D6D;color:#FF9DAF;font-size:12px;}
+  .form-overlay{position:fixed;inset:0;background:rgba(0,0,10,.6);display:flex;align-items:center;justify-content:center;z-index:10;padding:20px;}
+  .form-card{background:#0B1825;border:1px solid #162535;border-radius:14px;padding:20px;max-width:380px;width:100%;}
+  .form-card h3{font-size:14px;margin-bottom:14px;color:#F0F8FF;}
+  .form-field{margin-bottom:12px;}
+  .form-field label{display:block;font-size:11px;color:#94B8D4;margin-bottom:5px;}
+  .form-field input{width:100%;padding:8px 10px;border-radius:8px;border:1px solid #1E4A70;background:#060E17;color:#F0F8FF;font-size:13px;}
+  .form-actions{display:flex;justify-content:flex-end;margin-top:16px;}
+  .form-actions button{padding:9px 18px;border-radius:8px;border:none;background:#FB923C;color:#0B1825;font-weight:800;font-size:12px;cursor:pointer;}
 </style>
 </head>
 <body>
 <div id="app"></div>
+<input type="file" id="file-input" accept=".csv" style="display:none" onchange="onArquivoSelecionado(event)"/>
 
 <script>
-const S = [
-  {date:"2026-06-11",w:4,dia:"Qui",tipo:"Z4 LT2",   dur:43,rpe:9},
-  {date:"2026-06-12",w:4,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
-  {date:"2026-06-13",w:4,dia:"Sáb",tipo:"Z2",        dur:45,rpe:4},
-  {date:"2026-06-14",w:4,dia:"Dom",tipo:"Endurance", dur:85,rpe:5},
-  {date:"2026-06-15",w:5,dia:"Seg",tipo:"OFF",       dur:0, rpe:0},
-  {date:"2026-06-16",w:5,dia:"Ter",tipo:"Z3/Z4",     dur:41,rpe:7},
-  {date:"2026-06-17",w:5,dia:"Qua",tipo:"Z2",        dur:40,rpe:4},
-  {date:"2026-06-18",w:5,dia:"Qui",tipo:"Z5 VO₂",    dur:33,rpe:8},
-  {date:"2026-06-19",w:5,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
-  {date:"2026-06-20",w:5,dia:"Sáb",tipo:"Z2",        dur:28,rpe:3},
-  {date:"2026-06-21",w:5,dia:"Dom",tipo:"PROVA 18K", dur:74,rpe:8,prova:true},
-  {date:"2026-06-22",w:6,dia:"Seg",tipo:"OFF",       dur:0, rpe:0},
-  {date:"2026-06-23",w:6,dia:"Ter",tipo:"Z2",        dur:45,rpe:4},
-  {date:"2026-06-24",w:6,dia:"Qua",tipo:"Z2",        dur:50,rpe:4},
-  {date:"2026-06-25",w:6,dia:"Qui",tipo:"Z4 Fartlek",dur:47,rpe:8},
-  {date:"2026-06-26",w:6,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
-  {date:"2026-06-27",w:6,dia:"Sáb",tipo:"Z2",        dur:50,rpe:4},
-  {date:"2026-06-28",w:6,dia:"Dom",tipo:"Endurance", dur:90,rpe:6},
-  {date:"2026-06-29",w:7,dia:"Seg",tipo:"OFF",       dur:0, rpe:0},
-  {date:"2026-06-30",w:7,dia:"Ter",tipo:"Z4 LT2",    dur:61,rpe:8},
-  {date:"2026-07-01",w:7,dia:"Qua",tipo:"Z2",        dur:55,rpe:4},
-  {date:"2026-07-02",w:7,dia:"Qui",tipo:"Z5 VO₂",    dur:52,rpe:9},
-  {date:"2026-07-03",w:7,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
-  {date:"2026-07-04",w:7,dia:"Sáb",tipo:"Z2",        dur:55,rpe:4},
-  {date:"2026-07-05",w:7,dia:"Dom",tipo:"Endurance", dur:85,rpe:7},
-  {date:"2026-07-06",w:8,dia:"Seg",tipo:"OFF",       dur:0, rpe:0},
-  {date:"2026-07-07",w:8,dia:"Ter",tipo:"Z4 LT2",    dur:55,rpe:8},
-  {date:"2026-07-08",w:8,dia:"Qua",tipo:"Z2",        dur:55,rpe:4},
-  {date:"2026-07-09",w:8,dia:"Qui",tipo:"Z5 VO₂",    dur:52,rpe:9},
-  {date:"2026-07-10",w:8,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
-  {date:"2026-07-11",w:8,dia:"Sáb",tipo:"Z2",        dur:55,rpe:4},
-  {date:"2026-07-12",w:8,dia:"Dom",tipo:"Endurance", dur:92,rpe:8},
-  {date:"2026-07-13",w:9,dia:"Seg",tipo:"OFF",       dur:0, rpe:0},
-  {date:"2026-07-14",w:9,dia:"Ter",tipo:"Z4 LT2",    dur:52,rpe:9},
-  {date:"2026-07-15",w:9,dia:"Qua",tipo:"Z2",        dur:60,rpe:4},
-  {date:"2026-07-16",w:9,dia:"Qui",tipo:"Z5 VO₂",    dur:43,rpe:9},
-  {date:"2026-07-17",w:9,dia:"Sex",tipo:"OFF",       dur:0, rpe:0},
-  {date:"2026-07-18",w:9,dia:"Sáb",tipo:"Z2",        dur:60,rpe:4},
-  {date:"2026-07-19",w:9,dia:"Dom",tipo:"Endurance", dur:93,rpe:9},
-  {date:"2026-07-20",w:10,dia:"Seg",tipo:"OFF",      dur:0, rpe:0},
-  {date:"2026-07-21",w:10,dia:"Ter",tipo:"Z4 LT2",   dur:53,rpe:8},
-  {date:"2026-07-22",w:10,dia:"Qua",tipo:"Z2",       dur:50,rpe:4},
-  {date:"2026-07-23",w:10,dia:"Qui",tipo:"Z5 VO₂",   dur:44,rpe:9},
-  {date:"2026-07-24",w:10,dia:"Sex",tipo:"OFF",      dur:0, rpe:0},
-  {date:"2026-07-25",w:10,dia:"Sáb",tipo:"Z2",       dur:50,rpe:4},
-  {date:"2026-07-26",w:10,dia:"Dom",tipo:"Endurance",dur:90,rpe:8},
-  {date:"2026-07-27",w:11,dia:"Seg",tipo:"OFF",      dur:0, rpe:0},
-  {date:"2026-07-28",w:11,dia:"Ter",tipo:"Z3/Z4",    dur:54,rpe:8},
-  {date:"2026-07-29",w:11,dia:"Qua",tipo:"Z2",       dur:50,rpe:4},
-  {date:"2026-07-30",w:11,dia:"Qui",tipo:"Z5/Z4",    dur:52,rpe:9},
-  {date:"2026-07-31",w:11,dia:"Sex",tipo:"OFF",      dur:0, rpe:0},
-  {date:"2026-08-01",w:11,dia:"Sáb",tipo:"Z2",       dur:50,rpe:4},
-  {date:"2026-08-02",w:11,dia:"Dom",tipo:"Endurance",dur:86,rpe:8},
-  {date:"2026-08-03",w:12,dia:"Seg",tipo:"OFF",      dur:0, rpe:0},
-  {date:"2026-08-04",w:12,dia:"Ter",tipo:"Z4 LT2",   dur:56,rpe:9},
-  {date:"2026-08-05",w:12,dia:"Qua",tipo:"Z2",       dur:50,rpe:4},
-  {date:"2026-08-06",w:12,dia:"Qui",tipo:"Z5 VO₂",   dur:47,rpe:9},
-  {date:"2026-08-07",w:12,dia:"Sex",tipo:"OFF",      dur:0, rpe:0},
-  {date:"2026-08-08",w:12,dia:"Sáb",tipo:"Z2",       dur:45,rpe:4},
-  {date:"2026-08-09",w:12,dia:"Dom",tipo:"Endurance",dur:88,rpe:9},
-  {date:"2026-08-10",w:13,dia:"Seg",tipo:"OFF",      dur:0, rpe:0},
-  {date:"2026-08-11",w:13,dia:"Ter",tipo:"Z3/Z4",    dur:40,rpe:8},
-  {date:"2026-08-12",w:13,dia:"Qua",tipo:"Z2",       dur:40,rpe:4},
-  {date:"2026-08-13",w:13,dia:"Qui",tipo:"Z5 VO₂",   dur:37,rpe:8},
-  {date:"2026-08-14",w:13,dia:"Sex",tipo:"OFF",      dur:0, rpe:0},
-  {date:"2026-08-15",w:13,dia:"Sáb",tipo:"Z2",       dur:35,rpe:4},
-  {date:"2026-08-16",w:13,dia:"Dom",tipo:"Endurance",dur:69,rpe:7},
-  {date:"2026-08-17",w:14,dia:"Seg",tipo:"OFF",      dur:0, rpe:0},
-  {date:"2026-08-18",w:14,dia:"Ter",tipo:"Z3/Z4",    dur:35,rpe:7},
-  {date:"2026-08-19",w:14,dia:"Qua",tipo:"Z2",       dur:30,rpe:4},
-  {date:"2026-08-20",w:14,dia:"Qui",tipo:"Z5",       dur:28,rpe:7},
-  {date:"2026-08-21",w:14,dia:"Sex",tipo:"OFF",      dur:0, rpe:0},
-  {date:"2026-08-22",w:14,dia:"Sáb",tipo:"Z2",       dur:24,rpe:3},
-  {date:"2026-08-23",w:14,dia:"Dom",tipo:"PROVA 21K",dur:86,rpe:10,prova:true},
-];
+let S = [];
 
-const WL = {
-  4:"S4 · Base",5:"S5 · Transição",6:"S6 · Transição",
-  7:"S7 · Desenvolvimento",8:"S8 · Desenvolvimento",9:"S9 · Desenvolvimento",
-  10:"S10 · Desenvolvimento",11:"S11 · Especificidade",12:"S12 · Especificidade",
-  13:"S13 · Polimento",14:"S14 · Polimento",
+const horaTerminoParaMinutos = hhmm => {
+  const [h,m] = (hhmm || "08:00").split(":").map(Number);
+  return h*60 + m;
 };
 
 const wt = dur => {
-  const m = 440 - dur;
+  const baseMin = horaTerminoParaMinutos(horaTermino) - 40;
+  const m = baseMin - dur;
   return `${Math.floor(m/60)}:${(m%60).toString().padStart(2,"0")}`;
 };
 
-const sc = tipo => {
-  if(tipo.startsWith("PROVA"))   return {text:"#FFD43B",bar:"#FFD43B",bg:"rgba(255,212,59,.12)"};
+const isOffTipo = tipo => (tipo || "").trim().toUpperCase().startsWith("OFF");
+
+const sc = (tipo, prova) => {
+  if(prova)                      return {text:"#FFD43B",bar:"#FFD43B",bg:"rgba(255,212,59,.12)"};
   if(tipo.includes("Endurance")) return {text:"#C084FC",bar:"#C084FC",bg:"rgba(192,132,252,.10)"};
   if(tipo.includes("Z5"))        return {text:"#FF4D6D",bar:"#FF4D6D",bg:"rgba(255,77,109,.10)"};
   if(tipo.includes("Z4")||tipo==="Z3/Z4"||tipo.includes("Fartlek")||tipo.includes("Z5/Z4"))
@@ -190,9 +136,146 @@ const sc = tipo => {
 };
 
 const fmt = d => { const [,m,day]=d.split("-"); return `${day}/${m}`; };
+const MESES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const fmtLonga = d => { const [y,m,day] = d.split("-").map(Number); return `${day} ${MESES[m-1]} ${y}`; };
+
+// --- Parser de CSV (tolerante a aspas) ---
+function splitCSVLine(line) {
+  const fields = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (line[i+1] === '"') { cur += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        cur += c;
+      }
+    } else {
+      if (c === '"') { inQuotes = true; }
+      else if (c === ',') { fields.push(cur); cur = ""; }
+      else { cur += c; }
+    }
+  }
+  fields.push(cur);
+  return fields;
+}
+
+function parseCSVText(text) {
+  const lines = text.split("\n").map(l => l.replace(/\r$/, "")).filter(l => l.trim() !== "");
+  if (lines.length === 0) return { header: [], rows: [] };
+  const header = splitCSVLine(lines[0]).map(h => h.trim());
+  const rows = lines.slice(1).map(l => splitCSVLine(l));
+  return { header, rows };
+}
+
+const REQUIRED_COLS = ["data","dia","tipo","tempo"];
+
+function parseDateBR(s) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{2})$/.exec((s||"").trim());
+  if (!m) return null;
+  const day = parseInt(m[1],10), month = parseInt(m[2],10), year = 2000+parseInt(m[3],10);
+  if (day<1 || day>31 || month<1 || month>12) return null;
+  return `${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+}
+
+function buildRecords(header, rows) {
+  const idx = {};
+  header.forEach((h,i) => { idx[h] = i; });
+  const missingColumns = REQUIRED_COLS.filter(c => !(c in idx));
+  if (missingColumns.length) return { records: [], missingColumns };
+
+  const records = [];
+  rows.forEach(cols => {
+    const date = parseDateBR(cols[idx.data]);
+    if (!date) return; // CA-13: linha com data inválida é descartada
+
+    const dia  = (cols[idx.dia]  || "").trim();
+    const tipo = (cols[idx.tipo] || "").trim();
+    const treino = idx.treino !== undefined ? (cols[idx.treino] || "").trim() : "";
+    const parsedDur = parseInt(cols[idx.tempo], 10);
+    const dur = Number.isFinite(parsedDur) ? parsedDur : null; // CA-14
+
+    const rpeRaw = idx.rpe !== undefined ? cols[idx.rpe] : undefined;
+    const rpe = (rpeRaw !== undefined && rpeRaw !== "") ? rpeRaw : undefined;
+
+    const prova = tipo.toUpperCase().includes("PROVA") || treino.toUpperCase().includes("PROVA");
+
+    const rec = { date, dia, tipo, dur, rpe };
+    if (prova) rec.prova = true;
+    records.push(rec);
+  });
+
+  return { records, missingColumns: [] };
+}
+
+function deriveWeeksAndTarget(records) {
+  const sorted = [...records].sort((a,b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  if (sorted.length === 0) return { records: sorted, dataAlvo: null };
+
+  const firstMs = new Date(sorted[0].date + "T00:00:00Z").getTime();
+  sorted.forEach(r => {
+    const ms = new Date(r.date + "T00:00:00Z").getTime();
+    r.w = Math.floor((ms - firstMs) / 86400000 / 7) + 1;
+  });
+
+  const provas = sorted.filter(r => r.prova);
+  const dataAlvo = provas.length ? provas[provas.length-1].date : sorted[sorted.length-1].date;
+  return { records: sorted, dataAlvo };
+}
+
+function parseCiclo(text) {
+  const { header, rows } = parseCSVText(text);
+  const { records, missingColumns } = buildRecords(header, rows);
+  if (missingColumns.length) return { ok:false, error:"CSV inválido: faltam as colunas obrigatórias (" + missingColumns.join(", ") + ")." };
+  if (records.length === 0) return { ok:false, error:"CSV inválido: nenhuma linha com dados válidos foi encontrada." };
+  const { records: treinos, dataAlvo } = deriveWeeksAndTarget(records);
+  return { ok:true, treinos, dataAlvo };
+}
 
 let tab = "semana";
 let expanded = {};
+
+// --- Estado do ciclo, hora de término e nome do evento ---
+let horaTermino  = "08:00";
+let nomeEvento   = "";
+let dataAlvo     = null;
+let cicloCarregado = false;
+let errorMsg     = null;
+let pendingCiclo = null;   // {treinos, dataAlvo} aguardando confirmação do formulário
+let showForm     = false;
+let formDefaults = {horaTermino:"08:00", nomeEvento:""};
+
+const STORAGE_KEY = "srcCiclo";
+
+function computeDataAlvo(treinos) {
+  if (!treinos.length) return null;
+  const provas = treinos.filter(t => t.prova);
+  const pool = provas.length ? provas : treinos;
+  return pool.reduce((a,b) => a.date > b.date ? a : b).date;
+}
+
+function salvarCiclo() {
+  const data = { versao:1, horaTermino, nomeEvento, carregadoEm: new Date().toISOString(), treinos: S };
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+function carregarCicloSalvo() {
+  let raw;
+  try { raw = localStorage.getItem(STORAGE_KEY); } catch(e) { return false; }
+  if (!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.treinos) || data.treinos.length === 0) return false;
+    S = data.treinos;
+    horaTermino = data.horaTermino || "08:00";
+    nomeEvento  = data.nomeEvento || "";
+    dataAlvo    = computeDataAlvo(S);
+    return true;
+  } catch(e) { return false; }
+}
 
 function today() {
   const d = new Date();
@@ -206,33 +289,107 @@ function tomorrow() {
 function getHero() {
   const tmr = tomorrow();
   const ts = S.find(s => s.date === tmr);
-  if(ts && ts.tipo !== "OFF") return ts;
+  if(ts && !isOffTipo(ts.tipo)) return ts;
   return S.find(s => s.date > today());
 }
 
+// --- Fluxo de carregar/atualizar ciclo ---
+function abrirSeletorArquivo() {
+  document.getElementById("file-input").click();
+}
+
+function onArquivoSelecionado(e) {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const result = parseCiclo(String(reader.result));
+    if (!result.ok) {
+      errorMsg = result.error;
+      render();
+      return;
+    }
+    errorMsg = null;
+    pendingCiclo = result;
+    formDefaults = { horaTermino: horaTermino || "08:00", nomeEvento: nomeEvento || "" };
+    showForm = true;
+    render();
+  };
+  reader.onerror = () => {
+    errorMsg = "Não foi possível ler o arquivo selecionado.";
+    render();
+  };
+  reader.readAsText(file);
+}
+
+function confirmarCiclo() {
+  const htInput = document.getElementById("form-hora").value;
+  const neInput = document.getElementById("form-evento").value.trim();
+  if (!htInput) return;
+  S = pendingCiclo.treinos;
+  dataAlvo = pendingCiclo.dataAlvo;
+  horaTermino = htInput;
+  nomeEvento = neInput;
+  cicloCarregado = true;
+  pendingCiclo = null;
+  showForm = false;
+  tab = "semana";
+  expanded = {};
+  salvarCiclo();
+  render();
+}
+
+function setTab(t) { tab=t; render(); }
+function togAcc(w) {
+  const cw  = getHero()?.w ?? S[S.length-1]?.w;
+  const cur = expanded.hasOwnProperty(w) ? expanded[w] : w === cw;
+  expanded[w] = !cur;
+  render();
+}
+
 function render() {
-  const td    = today();
-  const tmr   = tomorrow();
+  const td = today();
+  const tmr = tomorrow();
+
+  if (!cicloCarregado) {
+    let html = `<div class="hdr"><div><div class="hdr-sub">Sistema Ritmo Certo</div></div></div>`;
+    if (errorMsg) html += `<div class="error-banner">${errorMsg}</div>`;
+    html += `
+  <div class="empty-state">
+    <p>Nenhum ciclo carregado ainda.</p>
+    <div class="ciclo-btn-wrap"><button class="ciclo-btn" onclick="abrirSeletorArquivo()">Carregar ciclo</button></div>
+  </div>
+  <div class="footer">Foco · Consistência · Execução</div>`;
+    document.getElementById("app").innerHTML = html;
+    if (showForm) renderFormOverlay(); else removeFormOverlay();
+    return;
+  }
+
   const hero  = getHero();
-  const cw    = hero?.w ?? 6;
-  const ws    = S.filter(s => s.w === cw);
-  const dl    = Math.max(0, Math.ceil((new Date("2026-08-23") - new Date(td)) / 86400000));
-  const byW   = S.reduce((a,s) => ({...a,[s.w]:[...(a[s.w]||[]),s]}),{});
+  const semanaDerivavel = S.length > 0 && S[0].w !== undefined;
+  const cw    = hero ? hero.w : (semanaDerivavel ? S[S.length-1].w : undefined);
+  const ws    = semanaDerivavel ? S.filter(s => s.w === cw) : [];
+  const dl    = dataAlvo ? Math.max(0, Math.ceil((new Date(dataAlvo) - new Date(td)) / 86400000)) : 0;
+  const byW   = semanaDerivavel ? S.reduce((a,s) => ({...a,[s.w]:[...(a[s.w]||[]),s]}),{}) : {};
   const isOpen= w => expanded.hasOwnProperty(w) ? expanded[w] : w===cw;
 
-  const heroSt = hero ? sc(hero.tipo) : {text:"#FB923C",bar:"#FB923C",bg:"transparent"};
+  const heroSt = hero ? sc(hero.tipo, hero.prova) : {text:"#FB923C",bar:"#FB923C",bg:"transparent"};
+  const weekLabel = w => w !== undefined ? `Semana ${w}` : "Semana não disponível";
 
   let html = `
   <div class="hdr">
     <div>
-      <div class="hdr-sub">Ciclo · Buenos Aires</div>
-      <div class="hdr-desc">Meia Maratona · 23 ago 2026</div>
+      <div class="hdr-sub">Sistema Ritmo Certo</div>
+      <div class="hdr-desc">${nomeEvento ? nomeEvento + " · " : ""}${dataAlvo ? fmtLonga(dataAlvo) : ""}</div>
     </div>
     <div class="hdr-right">
       <div class="hdr-label">faltam</div>
       <div class="hdr-days">${dl}<span> d</span></div>
     </div>
   </div>`;
+
+  if (errorMsg) html += `<div class="error-banner">${errorMsg}</div>`;
 
   if(hero) {
     const isAmanha = hero.date === tmr;
@@ -243,7 +400,7 @@ function render() {
       <div class="hero-row">
         <div>
           <div class="hero-eyebrow">${isAmanha ? "Amanhã" : "Próximo treino"}</div>
-          <div class="hero-meta">${hero.dia} ${fmt(hero.date)} · <span>${WL[hero.w]}</span></div>
+          <div class="hero-meta">${hero.dia} ${fmt(hero.date)} · <span>${weekLabel(hero.w)}</span></div>
         </div>
         <div class="hero-badge" style="background:${heroSt.bg};border:1px solid ${heroSt.bar}40;color:${heroSt.text}">${hero.tipo}</div>
       </div>
@@ -251,13 +408,15 @@ function render() {
         <div class="hero-wake-label">Despertar</div>
         ${hero.prova
           ? `<div class="hero-prova">🏁 DIA DE PROVA</div>`
+          : hero.dur === null
+          ? `<div class="hero-time" style="font-size:48px">—</div>`
           : `<div class="hero-time">${wt(hero.dur)}</div>
              <div class="hero-info">
                <span>⏱ <b>${hero.dur} min</b></span>
                <span class="hero-dot">·</span>
                <span>RPE <b>${hero.rpe}</b></span>
                <span class="hero-dot">·</span>
-               <span>término <b>~8:00</b></span>
+               <span>término <b>~${horaTermino}</b></span>
              </div>`
         }
       </div>
@@ -266,18 +425,19 @@ function render() {
   }
 
   html += `
+  <div class="ciclo-btn-wrap"><button class="ciclo-btn" onclick="abrirSeletorArquivo()">Atualizar ciclo</button></div>
   <div class="tabs">
     <button class="tab ${tab==="semana"?"active":"inactive"}" onclick="setTab('semana')">Esta Semana</button>
     <button class="tab ${tab==="ciclo"?"active":"inactive"}" onclick="setTab('ciclo')">Ciclo Completo</button>
   </div>`;
 
   if(tab==="semana") {
-    html += `<div class="sec-label">${WL[cw]}</div>`;
+    html += `<div class="sec-label">${weekLabel(cw)}</div>`;
     ws.forEach(s => {
       const isT  = s.date === td;
       const past = s.date < td;
-      const st   = sc(s.tipo);
-      const isOff= s.tipo==="OFF";
+      const st   = sc(s.tipo, s.prova);
+      const isOff= isOffTipo(s.tipo);
       html += `
   <div class="day-row${isT?" today":""}${past?" past":""}">
     <div style="width:40px;flex-shrink:0">
@@ -294,6 +454,8 @@ function render() {
         ? `<span class="day-wake-off">descanso</span>`
         : s.prova
         ? `<span class="day-wake-prova">PROVA</span>`
+        : s.dur === null
+        ? `<span class="day-wake-off">—</span>`
         : `<span class="day-wake-time">${wt(s.dur)}</span>`
       }
     </div>
@@ -302,23 +464,14 @@ function render() {
   }
 
   if(tab==="ciclo") {
-    Object.keys(byW).forEach(wk => {
-      const wn   = parseInt(wk);
-      const open = isOpen(wn);
-      const cur  = wn===cw;
-      const days = byW[wk].filter(s=>s.tipo!=="OFF");
-      html += `
-  <div style="margin:0 14px 6px">
-    <button class="acc-btn ${cur?"cur":"nor"} ${open?"open":"closed"}" onclick="togAcc(${wn})">
-      ${WL[wn]}<span class="acc-arrow">${open?"▲":"▼"}</span>
-    </button>`;
-      if(open) {
-        html += `<div class="acc-body">`;
-        days.forEach((s,i) => {
-          const past = s.date < td;
-          const isT  = s.date === td;
-          const st   = sc(s.tipo);
-          html += `
+    if (!semanaDerivavel) {
+      const days = S.filter(s => !isOffTipo(s.tipo));
+      html += `<div class="acc-body" style="margin:0 14px 6px;border-radius:10px">`;
+      days.forEach(s => {
+        const past = s.date < td;
+        const isT  = s.date === td;
+        const st   = sc(s.tipo, s.prova);
+        html += `
     <div class="acc-item${isT?" today-row":""}" style="opacity:${past?.32:1}">
       <div class="acc-date">${s.dia} ${fmt(s.date)}</div>
       <div style="flex:1;padding-left:4px">
@@ -327,28 +480,94 @@ function render() {
       </div>
       <div>${s.prova
         ? `<span class="acc-wake prova">🏁</span>`
+        : s.dur === null
+        ? `<span class="acc-wake" style="font-size:12px;color:#3D6482">—</span>`
         : `<span class="acc-wake">${wt(s.dur)}</span>`
       }</div>
     </div>`;
-        });
-        html += `</div>`;
-      }
+      });
       html += `</div>`;
-    });
+    } else {
+      Object.keys(byW).forEach(wk => {
+        const wn   = parseInt(wk);
+        const open = isOpen(wn);
+        const cur  = wn===cw;
+        const days = byW[wk].filter(s=>!isOffTipo(s.tipo));
+        html += `
+  <div style="margin:0 14px 6px">
+    <button class="acc-btn ${cur?"cur":"nor"} ${open?"open":"closed"}" onclick="togAcc(${wn})">
+      ${weekLabel(wn)}<span class="acc-arrow">${open?"▲":"▼"}</span>
+    </button>`;
+        if(open) {
+          html += `<div class="acc-body">`;
+          days.forEach((s,i) => {
+            const past = s.date < td;
+            const isT  = s.date === td;
+            const st   = sc(s.tipo, s.prova);
+            html += `
+    <div class="acc-item${isT?" today-row":""}" style="opacity:${past?.32:1}">
+      <div class="acc-date">${s.dia} ${fmt(s.date)}</div>
+      <div style="flex:1;padding-left:4px">
+        <span class="acc-tipo" style="color:${st.text}">${s.tipo}</span>
+        ${s.dur>0?`<span class="acc-dur">${s.dur}' RPE${s.rpe}</span>`:""}
+      </div>
+      <div>${s.prova
+        ? `<span class="acc-wake prova">🏁</span>`
+        : s.dur === null
+        ? `<span class="acc-wake" style="font-size:12px;color:#3D6482">—</span>`
+        : `<span class="acc-wake">${wt(s.dur)}</span>`
+      }</div>
+    </div>`;
+          });
+          html += `</div>`;
+        }
+        html += `</div>`;
+      });
+    }
   }
 
   html += `<div class="footer">Foco · Consistência · Execução</div>`;
   document.getElementById("app").innerHTML = html;
+
+  if (showForm) renderFormOverlay(); else removeFormOverlay();
 }
 
-function setTab(t) { tab=t; render(); }
-function togAcc(w) {
-  const cur = expanded.hasOwnProperty(w) ? expanded[w] : w === (getHero()?.w ?? 6);
-  expanded[w] = !cur;
-  render();
+function removeFormOverlay() {
+  const existing = document.getElementById("form-overlay");
+  if (existing) existing.remove();
 }
 
+function renderFormOverlay() {
+  removeFormOverlay();
+  const overlay = document.createElement("div");
+  overlay.className = "form-overlay";
+  overlay.id = "form-overlay";
+  overlay.innerHTML = `
+    <div class="form-card">
+      <h3>Confirmar ciclo</h3>
+      <div class="form-field">
+        <label for="form-hora">Hora de término do treino</label>
+        <input type="time" id="form-hora" value="${formDefaults.horaTermino}" required/>
+      </div>
+      <div class="form-field">
+        <label for="form-evento">Nome do evento (opcional)</label>
+        <input type="text" id="form-evento" value="${formDefaults.nomeEvento}" placeholder="ex.: Meia Maratona de Buenos Aires"/>
+      </div>
+      <div class="form-actions">
+        <button onclick="confirmarCiclo()">Confirmar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+cicloCarregado = carregarCicloSalvo();
 render();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js");
+  });
+}
 </script>
 </body>
 </html>
