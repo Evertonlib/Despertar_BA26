@@ -201,7 +201,7 @@ function buildRecords(header, rows) {
     const rpeRaw = idx.rpe !== undefined ? cols[idx.rpe] : undefined;
     const rpe = (rpeRaw !== undefined && rpeRaw !== "") ? rpeRaw : undefined;
 
-    const prova = tipo.toUpperCase().includes("PROVA") || treino.toUpperCase().includes("PROVA");
+    const prova = tipo.toUpperCase().includes("PROVA");
 
     const rec = { date, dia, tipo, dur, rpe };
     if (prova) rec.prova = true;
