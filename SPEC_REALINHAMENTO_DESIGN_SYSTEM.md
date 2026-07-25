@@ -541,20 +541,67 @@ Se, após a publicação, qualquer critério de aceitação falhar em produção
 
 ## Plano de Execução
 
-- [ ] Task 1 — Baixar/preparar os 7 arquivos `.woff2` (Bebas Neue 400; Inter 400/500/600/700; IBM Plex Mono 400/500, subset `latin`, mesmos pacotes do `Painel-treino`), nomeados em minúsculas conforme seção 2.1, na pasta `fonts/`.
-- [ ] Task 2 — Criar `.gitattributes` com `*.woff2 binary` (seção 7.3), antes de adicionar os arquivos de fonte ao controle de versão.
-- [ ] Task 3 — Reescrever o bloco `<style>` do `index.html`: adicionar `@font-face` (seção 2.2) e `:root` com os tokens de cor e de fonte (seções 1.1 e 2.3), incluindo o bloco `@media (prefers-reduced-motion: reduce)` (seção 4.2).
-- [ ] Task 4 — Substituir, seletor por seletor, cada cor hardcoded do `<style>` pelo token correspondente, conforme as tabelas de-para das seções 1.2 e 2.4 (cor e fonte), incluindo os seletores com cores "extras" não citadas no PRD.
-- [ ] Task 5 — Adicionar as classes `.regua-zona`/`.regua-zona__seg` ao `<style>` (seção 4.2).
-- [ ] Task 6 — Reescrever a função `sc()` no `<script>` conforme a seção 3.3, mantendo a assinatura `sc(tipo, prova)` e o formato de retorno `{text, bar, bg}` mais o novo campo `regua`.
-- [ ] Task 7 — Inserir o HTML da Régua de Zona no template do hero (entre `.hero-row` e `.hero-center`), condicionado a `heroSt.regua` não ser `null` (seção 4.1 e 4.3).
-- [ ] Task 8 — Atualizar `manifest.webmanifest` (`background_color`/`theme_color` para `#14171b`, seção 6.1) e a meta tag `theme-color` no `index.html` (seção 6.2).
-- [ ] Task 9 — Atualizar `sw.js`: incrementar `CACHE_NAME` para `src-cache-v2` e adicionar os 7 caminhos de fonte a `ASSETS` (seção 5.2), só depois de confirmar que os 7 arquivos já estão commitados (seção 5.3).
-- [ ] Task 10 — Executar a validação local completa (seção 7.1, passos 1 a 10) antes de qualquer commit, corrigindo qualquer item que falhar.
+- [x] Task 1 — Baixar/preparar os 7 arquivos `.woff2` (Bebas Neue 400; Inter 400/500/600/700; IBM Plex Mono 400/500, subset `latin`, mesmos pacotes do `Painel-treino`), nomeados em minúsculas conforme seção 2.1, na pasta `fonts/`.
+- [x] Task 2 — Criar `.gitattributes` com `*.woff2 binary` (seção 7.3), antes de adicionar os arquivos de fonte ao controle de versão.
+- [x] Task 3 — Reescrever o bloco `<style>` do `index.html`: adicionar `@font-face` (seção 2.2) e `:root` com os tokens de cor e de fonte (seções 1.1 e 2.3), incluindo o bloco `@media (prefers-reduced-motion: reduce)` (seção 4.2).
+- [x] Task 4 — Substituir, seletor por seletor, cada cor hardcoded do `<style>` pelo token correspondente, conforme as tabelas de-para das seções 1.2 e 2.4 (cor e fonte), incluindo os seletores com cores "extras" não citadas no PRD.
+- [x] Task 5 — Adicionar as classes `.regua-zona`/`.regua-zona__seg` ao `<style>` (seção 4.2).
+- [x] Task 6 — Reescrever a função `sc()` no `<script>` conforme a seção 3.3, mantendo a assinatura `sc(tipo, prova)` e o formato de retorno `{text, bar, bg}` mais o novo campo `regua`.
+- [x] Task 7 — Inserir o HTML da Régua de Zona no template do hero (entre `.hero-row` e `.hero-center`), condicionado a `heroSt.regua` não ser `null` (seção 4.1 e 4.3).
+- [x] Task 8 — Atualizar `manifest.webmanifest` (`background_color`/`theme_color` para `#14171b`, seção 6.1) e a meta tag `theme-color` no `index.html` (seção 6.2).
+- [x] Task 9 — Atualizar `sw.js`: incrementar `CACHE_NAME` para `src-cache-v2` e adicionar os 7 caminhos de fonte a `ASSETS` (seção 5.2), só depois de confirmar que os 7 arquivos já estão commitados (seção 5.3).
+- [x] Task 10 — Executar a validação local completa (seção 7.1, passos 1 a 10) antes de qualquer commit, corrigindo qualquer item que falhar. **Ver desvio D-06:** parte automatizável executada por script; passos de navegador validados manualmente pelo Everton em 25/07/2026, todos aprovados.
 - [ ] Task 11 — Commit único com todas as mudanças (bloco `<style>`, `sc()`, HTML da Régua, `sw.js`, `manifest.webmanifest`, `.gitattributes`, arquivos `.woff2`), conforme seção 7.2.
 - [ ] Task 12 — Publicar e validar em produção imediatamente após o deploy: Network sem 404, fontes aplicadas, cache `src-cache-v2` instalado, offline funcional, PWA instalado com a cor Grafite (CA-16/CA-17) — manter o commit do rollback (seção 7.4) pronto para uso caso algo falhe.
 
 ---
 
 ## Desvios
+
+### D-01 — Origem dos arquivos `.woff2`: cópia local, não download
+
+**Especificado:** Task 1 — "Baixar/preparar os 7 arquivos `.woff2` (...) mesmos pacotes do `Painel-treino`".
+**Feito:** os 7 arquivos foram **copiados** de `Painel-treino/node_modules/@fontsource/{bebas-neue,inter,ibm-plex-mono}/files/*-latin-{peso}-normal.woff2`, sem acesso à rede.
+**Por quê:** são exatamente os pacotes/pesos/subset que a premissa 5 do PRD manda usar, já presentes em disco. Copiar garante bit a bit o mesmo arquivo que o `Painel-treino` serve (consistência visual entre os apps da família) e evita depender de rede. Integridade conferida: os 7 arquivos têm assinatura `wOF2` e tamanho entre 13 KB e 24 KB (~140 KB no total).
+
+### D-02 — `.footer` estava mapeada sob a cor antiga errada
+
+**Especificado:** a tabela da seção 1.2 lista `.footer` (linha 89) na linha de `#3D6482` → `var(--texto-terciario)`.
+**Feito:** `.footer` usa `var(--texto-terciario)`, conforme o destino previsto — mas a cor que ela realmente tinha no código era `#1C3A52`, não `#3D6482`.
+**Por quê:** erro de origem na tabela da Spec, não na implementação. O destino (`--texto-terciario`) foi mantido porque é o papel correto (rótulo institucional secundário); só a coluna "cor antiga" estava trocada.
+
+### D-03 — Ocorrências de `#1C3A52` como cor de texto
+
+**Especificado:** seção 1.2 (extras) mapeia `#1C3A52` → `var(--borda)`, citando `.hero-dot` e a borda de `.acc-item+.acc-item`.
+**Feito:** `var(--borda)` aplicada nesses dois casos, conforme a Spec. Nos outros dois usos de `#1C3A52` que a Spec não lista — `.day-wake-off` (linha 67, o "—" dos dias de descanso) e `.footer` (ver D-02) — foi usada `var(--texto-terciario)`.
+**Por quê:** `--borda` é a cor de texto do tema a **10%** de opacidade, adequada a um divisor mas ilegível como texto informativo. `.day-wake-off` e `.footer` são texto que a usuária precisa conseguir ler.
+
+### D-04 — Cores antigas hardcoded dentro do `<script>`, não previstas na Spec
+
+**Especificado:** a Spec mapeia cores por seletor CSS; as seções 3 e 4 tratam do `<script>` apenas em `sc()` e no HTML da Régua.
+**Feito:** três ocorrências adicionais de cor antiga no `<script>` foram migradas:
+- o objeto de fallback de `heroSt` (usado quando não há próximo treino): `{text:"#FB923C",bar:"#FB923C",bg:"transparent"}` → `{text:"#d6482e",bar:"#d6482e",bg:"transparent",regua:null}`;
+- o `—` de dia sem horário no acordeão, em dois pontos: `color:#3D6482` → `color:var(--texto-terciario)`;
+- o `.day-bar` de dia OFF: `#1C3A52` → `var(--zona-off)` (este **estava** previsto na seção 1.2).
+**Por quê:** sem isso sobrariam hex da paleta antiga em uso, contrariando o objetivo da melhoria. O campo `regua:null` no fallback é necessário para o novo template do hero não quebrar caso esse caminho seja exercitado.
+
+### D-05 — Cor do texto do botão primário
+
+**Especificado:** a tabela da seção 1.2 mapeia `#0B1825` → `var(--grafite-soft)`, listando apenas os seletores em que ela é **fundo**.
+**Feito:** em `.form-actions button`, onde `#0B1825` é a **cor do texto** sobre o fundo Pista, foi usada `var(--grafite)` (a base mais escura), não `--grafite-soft`.
+**Por quê:** é o único uso de `#0B1825` como cor de texto, e ali o papel é "texto escuro sobre a cor de marca" — `--grafite` dá mais contraste sobre Pista do que `--grafite-soft`.
+
+### D-06 — Task 10 (validação local) executada apenas na parte automatizável
+
+**Especificado:** seção 7.1, passos 1 a 10 — validação em navegador, incluindo inspeção visual, aba Network, painel de fontes, Service Workers/Cache Storage, teste offline e PWA instalado.
+**Feito:** foi executada a parte verificável por script, com todos os resultados positivos:
+- `node --check` no `<script>` extraído do `index.html` — nenhum erro de sintaxe (mitigação direta do risco 8.1.1 do PRD);
+- chaves do bloco `<style>` balanceadas (86 abre / 86 fecha) e `manifest.webmanifest` parseável como JSON;
+- teste de comportamento da nova `sc()` em 14 casos (Z1–Z5, Endurance, VO2, força com e sem acento, `OFF + Estabilidade Core`, `Z3 + Força`, tipo não reconhecido, prova, `tipo` indefinido) — todos com a cor e a régua esperadas, cobrindo CA-03 a CA-09;
+- smoke test do `render()` com DOM stubado, confirmando no HTML gerado: Régua com faixa Z2–Z4 para Endurance (CA-11), segmento único para Z4 e para VO2 (CA-10/CA-05), cinco segmentos a 22% para tipo não reconhecido (CA-09), e Régua **ausente** para OFF, força e prova (CA-12); nenhum hex da paleta antiga no HTML produzido;
+- conferência **sensível a caixa** (comparação exata contra `readdirSync`, já que o sistema de arquivos do Windows não distingue maiúsculas) das 7 referências de `@font-face` e dos 12 caminhos de `ASSETS` contra os arquivos reais — mitigação dos riscos 8.1.2 e 8.1.3 do PRD;
+- varredura de resíduo: nenhuma das 18 cores da paleta antiga permanece em `index.html`, `sw.js` ou `manifest.webmanifest` (exceto `.error-banner`, mantida de propósito conforme seção 1.3).
+**Pendente (exige navegador, não automatizável neste ambiente):** inspeção visual da paleta e das três fontes de fato renderizando, aba Network sem 404 servindo por HTTP, Cache Storage com `src-cache-v2` e remoção do `src-cache-v1`, teste offline (CA-15) e PWA instalado com a cor Grafite (CA-16/CA-17).
+**Por quê:** o ambiente de execução não tem navegador dirigível.
+**Resolução:** os passos pendentes (3, 4, 6, 7, 8, 9 e 10 da seção 7.1) foram executados manualmente pelo Everton em 25/07/2026, com resultado aprovado em todos. A Task 10 está concluída.
 
